@@ -6,7 +6,7 @@
         该工具用于从一个字体文件中提取指定的文字，导出的字体中将只包含你需要的文字。
       </p>
       <div style="display: flex; align-items: center; width: 400px; margin: auto;">
-        <span style="width: 200px; text-align: right;">请选择字体源文件：</span>
+        <span style="width: 200px; text-align: right;">请选择字体源文件（.ttf）：</span>
         <Upload style="width: 150px;" :show-file-list="false" :custom-request="uploadIt" accept=".ttf" />
       </div><br>
       当前字体：{{ state.oriFontName }}
@@ -24,7 +24,8 @@
           </div>
         </Space>
         <Button type="primary" @click="exportIt">导出字体</Button>&nbsp;
-        <Button @click="reloadIt">重置</Button>
+        <Button @click="loadInput2500">2500个常用字</Button>&nbsp;
+        <Button @click="clearInput">清空</Button>
       </div>
     </Spin>
   </div>
@@ -48,8 +49,20 @@ const uploadIt = (e) => {
   document.head.innerHTML += `<style>@font-face {font-family: 'oriFont'; src: url(${URL.createObjectURL(e.fileItem.file)});} h3 {font-family: 'oriFont';}</style>`
 }
 
-const reloadIt = () => {
-  window.location.reload()
+const clearInput = () => {
+  state.inputText = ''
+}
+
+const loadInput2500 = () => {
+  state.running = true
+  let request = new XMLHttpRequest()
+  request.open("get", "./dict.json")
+  request.send()
+  request.onload = (dict) => {
+    let json = JSON.parse(request.responseText)
+    state.inputText = json["2500"]
+    state.running = false
+  }
 }
 
 const exportIt = () => {
@@ -83,7 +96,7 @@ const exportIt = () => {
       ...result
     ];
     const tempLink = document.createElement('a');
-    tempLink.download = 'target.ttf'
+    tempLink.download = state.oriFontName.split('.')[0] + '_output.ttf'
     tempLink.href = targetFont.toBase64({ type: 'ttf' })
     tempLink.click()
     state.running = false
